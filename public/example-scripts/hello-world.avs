@@ -1,5 +1,3 @@
-
-
 // 显示一个场景
 const currentScene = scene.load(0, "demo/room.png");
 
