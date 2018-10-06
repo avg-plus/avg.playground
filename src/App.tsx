@@ -1,11 +1,9 @@
 import * as React from "react";
-import AVGStudioMain from "./layouts/AVGStudioMain";
-
-import "./App.scss";
+import Playground from "./layouts/Playground";
 
 class App extends React.Component {
   public render() {
-    return <AVGStudioMain />;
+    return <Playground />;
   }
 }
 

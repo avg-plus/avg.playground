@@ -17,18 +17,24 @@ function createWindow() {
     x: 0,
     y: 0,
     height: size.height,
-    width: size.width
+    width: size.width,
+    webPreferences: {
+      nodeIntegration: true,
+      allowRunningInsecureContent: true
+    }
   });
 
   if (serve) {
-    require("electron-reload")(__dirname, {
-      electron: require(`${__dirname}/node_modules/electron`)
-    });
-    win.loadURL("http://localhost:4200");
+    // require("electron-reload")(__dirname, {
+    //   electron: require(`${__dirname}/node_modules/electron`)
+    // });
+    win.loadURL("http://localhost:3000");
   } else {
+    console.log(path.join(__dirname, "index.html"));
+
     win.loadURL(
       url.format({
-        pathname: path.join(__dirname, "dist/index.html"),
+        pathname: path.join(__dirname, "index.html"),
         protocol: "file:",
         slashes: true
       })
