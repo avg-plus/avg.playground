@@ -6,18 +6,13 @@ import 'brace/theme/xcode';
 // import "brace/theme/ambiance";
 import 'brace/theme/monokai';
 import bind from 'bind-decorator';
-import { CodeEditorService } from './controller';
-import { Editor } from 'brace';
-import { saveCommand } from './command/save';
+import {ISplitPanProps} from '../../layouts/globalService';
+import {Editor} from 'brace';
+import {saveCommand} from './command/save';
 
-export interface ICodeEditorProps {
-  code: string;
-  isDark: boolean;
-  controller: CodeEditorService;
-  onCodeChanged?: (code: string) => void;
-}
+class CodeEditor extends React.Component<ISplitPanProps> {
+  static readonly ID = 'CodeEditor';
 
-class CodeEditor extends React.Component<ICodeEditorProps> {
   private editor: Editor;
 
   state = {
@@ -29,23 +24,16 @@ class CodeEditor extends React.Component<ICodeEditorProps> {
       <AceEditor
         ref={this.handleEditorRef}
         defaultValue={this.state.code}
-        value={this.props.code}
-        style={{ width: '100%', height: '100%' }}
+        style={{width: '100%', height: '100%'}}
         mode="javascript"
-        theme={this.props.isDark? 'monokai' : 'xcode'}
+        theme={this.props.global.isDark ? 'monokai' : 'xcode'}
         name="code-editor"
-        editorProps={{ $blockScrolling: true }}
+        editorProps={{$blockScrolling: true}}
         showPrintMargin={false}
-        // tslint:disable-next-line:jsx-no-bind
-        onChange={this.handleChange.bind(this)}
         enableLiveAutocompletion={true}
         fontSize={16}
       />
     );
-  }
-
-  private handleChange(value: string, event?: any) {
-    this.props.onCodeChanged && this.props.onCodeChanged(value);
   }
 
   @bind
@@ -55,7 +43,7 @@ class CodeEditor extends React.Component<ICodeEditorProps> {
     }
 
     this.editor = ref.editor;
-    this.props.controller.setRef(ref.editor);
+    this.props.global.setRef(ref.editor);
     this.registerCommands();
   }
 

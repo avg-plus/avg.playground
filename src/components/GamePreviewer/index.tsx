@@ -1,8 +1,11 @@
 import * as React from "react";
 import { AVGPlayerURL } from "../../common/common";
+import {ISplitPanProps} from "../../layouts/globalService";
 // import { ContextMenuTarget, MenuItem, Menu, MenuDivider } from "@blueprintjs/core";
 
-class GamePreviewer extends React.PureComponent {
+class GamePreviewer extends React.PureComponent<ISplitPanProps> {
+  static readonly ID = "game-previewer";
+
   public state = { isContextMenuOpen: false };
 
   render() {

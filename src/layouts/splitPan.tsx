@@ -1,51 +1,93 @@
 import * as React from 'react';
-import * as $ from 'jquery';
 import bind from 'bind-decorator';
-import SplitPane from 'react-split-pane';
+import * as GoldenLayout from 'golden-layout'
+import {ReactComponentConfig} from 'golden-layout'
+import CodeEditor from "../components/CodeEditor";
+import GamePreviewer from "../components/GamePreviewer";
+import {ISplitPanProps} from "./globalService";
+import * as $ from 'jquery';
+import "golden-layout/src/css/goldenlayout-base.css";
+import "golden-layout/src/css/goldenlayout-dark-theme.css";
 
-interface ISplitPanProps {
-  isDark: boolean;
-}
+const layout = {
+  settings: {
+    hasHeaders: false,
+    showMaximiseIcon: false,
+    showPopoutIcon: false
+  },
+  content: [{
+    type: "row",
+    content: [
+      {
+        type: "react-component",
+        title: "代码编辑器",
+        component: CodeEditor.ID,
+        isClosable: false,
+        width: 14,
+      },
+      {
+        type: "react-component",
+        title: "实时",
+        component: GamePreviewer.ID,
+        isClosable: false,
+        width: 18,
+      }
+    ]
+  }]
+};
 
-export class SplitPan extends React.Component<ISplitPanProps> {
-  private dragMask: JQuery<HTMLElement>;
+export class SplitPan extends React.Component<any> {
+  private instance: GoldenLayout;
 
-  @bind
-  private fixDrag(): void {
-    this.dragMask.show();
+  constructor(props: ISplitPanProps) {
+    super(props);
+
+    this.setProps(layout.content, props);
+
+    this.instance = new GoldenLayout(layout);
+
+    this.instance.registerComponent(CodeEditor.ID, CodeEditor);
+    this.instance.registerComponent(GamePreviewer.ID, GamePreviewer);
   }
 
   @bind
-  private unfixDrag(): void {
-    this.dragMask.hide();
+  private updateRef(ref: any) {
+    this.instance.container = $(ref);
   }
 
-  componentWillMount() {
-    this.dragMask = $('<div id="theDraggingMask"></div>').appendTo('body');
+  componentDidMount() {
+    this.instance.init();
+    setTimeout(() => {
+      this.resize();
+    });
+    window.addEventListener('resize', this.resize);
+  }
+
+  @bind
+  resize() {
+    this.instance.updateSize();
   }
 
   componentWillUnmount() {
-    this.dragMask.remove();
-  }
-
-  @bind
-  resize(newSize: number) {
-    localStorage.setItem('splitSize', newSize.toString() + 'px');
+    this.instance.destroy();
+    window.removeEventListener('resize', this.resize)
   }
 
   render() {
-    return <SplitPane
-      split="vertical"
-      allowResize={true}
-      minSize="200px"
-      maxSize="80%"
-      defaultSize={localStorage.getItem('splitSize') || '30%'}
-      onChange={this.resize}
-      onDragStarted={this.fixDrag}
-      onDragFinished={this.unfixDrag}
-      resizerClassName={this.props.isDark? 'dark' : 'light'}
-    >
-      {this.props.children}
-    </SplitPane>;
+    return <div
+      ref={this.updateRef}
+      className="primary"
+    />;
+  }
+
+  private setProps(config: GoldenLayout.ItemConfigType[], props: any) {
+    for (const item of config) {
+      if (item && item.content) {
+        this.setProps(item.content, props);
+      } else {
+        (item as ReactComponentConfig).props = props;
+      }
+    }
   }
 }
+
