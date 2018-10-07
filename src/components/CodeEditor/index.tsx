@@ -13,6 +13,11 @@ import {saveCommand} from './command/save';
 class CodeEditor extends React.Component<ISplitPanProps> {
   static readonly ID = 'CodeEditor';
 
+  constructor(p: ISplitPanProps) {
+    super(p);
+    p.global.register(this);
+  }
+
   private editor: Editor;
 
   state = {
@@ -25,6 +30,7 @@ class CodeEditor extends React.Component<ISplitPanProps> {
         ref={this.handleEditorRef}
         defaultValue={this.state.code}
         style={{width: '100%', height: '100%'}}
+        value={this.props.global.code}
         mode="javascript"
         theme={this.props.global.isDark ? 'monokai' : 'xcode'}
         name="code-editor"

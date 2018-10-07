@@ -42,6 +42,8 @@ export class SplitPan extends React.Component<any> {
   constructor(props: ISplitPanProps) {
     super(props);
 
+    props.global.register(this);
+
     this.setProps(layout.content, props);
 
     this.instance = new GoldenLayout(layout);

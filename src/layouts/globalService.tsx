@@ -8,17 +8,12 @@ export class GlobalService {
   private waitDefer = Deferred<Editor>();
   private renderRegister: React.Component<any>[] = [];
   private _isDark: boolean = !!localStorage.getItem('isDark');
+  private _code: string;
 
   @bind
   setRef(ref: Editor) {
     Object.assign(window, {__editor: ref}); // for debug
     this.waitDefer.resolve(ref)
-  }
-
-  @bind
-  async getCode() {
-    const editor = await this.waitDefer;
-    return editor.getValue();
   }
 
   private doRender() {
@@ -31,9 +26,20 @@ export class GlobalService {
     this.renderRegister.push(elem)
   }
 
+
+  get code() {
+    return this._code;
+  }
+
+  @bind
+  public setCode(newCode: string) {
+    this._code = newCode;
+  }
+
   @bind
   public async flushCode(newCode: string) {
     const editor = await this.waitDefer;
+    this.setCode(newCode);
     editor.setValue(newCode);
     editor.clearSelection();
     editor.session.getUndoManager().reset();

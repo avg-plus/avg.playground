@@ -47,7 +47,7 @@ class Playground extends React.Component {
     const playFrame = $('#avg-player')[0] as HTMLIFrameElement;
     const contentWin = playFrame.contentWindow;
     if (contentWin) {
-      contentWin.postMessage({OP: 'RunStory', data: {script: await this.globalController.getCode()}}, '*');
+      contentWin.postMessage({OP: 'RunStory', data: {script: await this.globalController.code}}, '*');
 
       Toaster.create({autoFocus: true, usePortal: true}, document.body).show({
         message: '运行成功',
