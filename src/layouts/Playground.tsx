@@ -1,8 +1,5 @@
 import * as React from 'react';
-import CodeEditor from '../components/CodeEditor';
 import * as $ from 'jquery';
-
-import GamePreviewer from '../components/GamePreviewer';
 import {
   Alignment,
   Button,
@@ -20,61 +17,51 @@ import {
   Position,
   Toaster,
 } from '@blueprintjs/core';
-import { APITemplate } from '../common/api-template';
-import bind from 'bind-decorator';
-import { SplitPan } from './splitPan';
-import { CodeEditorService } from '../components/CodeEditor/controller';
-import { Memoize } from 'lodash-decorators';
+import {APITemplate} from '../common/api-template';
+import {SplitPan} from './splitPan';
+import {GlobalService} from './globalService';
+import {Memoize} from 'lodash-decorators';
+import bind from "bind-decorator";
 
 class Playground extends React.Component {
-  state = {
-    isDark: !!localStorage.getItem('isDark'),
-    code  : '',
-  };
-  private editorController: CodeEditorService;
+  private globalController: GlobalService;
 
-  componentWillMount() {
-    this.editorController = new CodeEditorService;
+  constructor(props: any) {
+    super(props);
+    this.globalController = new GlobalService;
+    this.globalController.register(this);
   }
 
   async componentDidMount() {
-    this.setState({
-      code: await fetch('example-scripts/hello-world.avs').then(resp => resp.text()),
-    });
-    this.editorController.flushCode();
+    const resp = await fetch('example-scripts/hello-world.avs');
+    const content = await resp.text();
+    await this.globalController.flushCode(content);
+  }
+
+  componentWillUnmount() {
+
   }
 
   @bind
-  handleCodeChanged(value: string, event?: any) {
-    this.setState({ code: value });
-  }
-
-  handleRun = () => {
+  async handleRun() {
     const playFrame = $('#avg-player')[0] as HTMLIFrameElement;
     const contentWin = playFrame.contentWindow;
     if (contentWin) {
-      contentWin.postMessage({ OP: 'RunStory', data: { script: this.state.code } }, '*');
+      contentWin.postMessage({OP: 'RunStory', data: {script: await this.globalController.getCode()}}, '*');
 
-      Toaster.create({ autoFocus: true, usePortal: true }, document.body).show({
+      Toaster.create({autoFocus: true, usePortal: true}, document.body).show({
         message: '运行成功',
-        icon   : 'tick',
-        intent : Intent.SUCCESS,
+        icon: 'tick',
+        intent: Intent.SUCCESS,
       });
     }
-  };
-
-  @bind
-  private handleTheme() {
-    const isDark = !this.state.isDark;
-    this.setState({ isDark });
-    localStorage.setItem('isDark', isDark? 'dark' : '');
   };
 
   handleReload = () => {
     const playFrame = $('#avg-player')[0] as HTMLIFrameElement;
     const contentWin = playFrame.contentWindow;
     if (contentWin) {
-      contentWin.postMessage({ OP: 'ReloadPlayer' }, '*');
+      contentWin.postMessage({OP: 'ReloadPlayer'}, '*');
     }
   };
 
@@ -90,11 +77,9 @@ class Playground extends React.Component {
   private getAPIMenus() {
     return APITemplate.map((apiClass, index) => {
       const subMenus = apiClass.apis.map((api, index) => {
-        const handler = () => {
-          this.editorController.insert(api.template);
-          setTimeout(() => {
-            this.editorController.focus();
-          }, 0);
+        const handler = async () => {
+          await this.globalController.insert(api.template);
+          await this.globalController.focus();
         };
 
         return <MenuItem
@@ -116,9 +101,9 @@ class Playground extends React.Component {
 
   render() {
     return (
-      <div id="main" style={{ width: '100%', height: '100%' }} className={this.state.isDark? 'bp3-dark' : ''}>
+      <div id="main" className={this.globalController.isDark ? 'bp3-dark' : ''}>
         {/* <AnnouncementBoard /> */}
-        <Navbar fixedToTop={true}>
+        <Navbar>
           <NavbarGroup align={Alignment.LEFT}>
             <NavbarHeading>AVGPlus Playground</NavbarHeading>
             <NavbarDivider/>
@@ -134,7 +119,7 @@ class Playground extends React.Component {
           {/* <Navbar.Group align={Alignment.LEFT}></Navbar.Group> */}
 
           <Navbar.Group align={Alignment.RIGHT}>
-            <Button icon="flash" minimal={false} onClick={this.handleTheme}/>
+            <Button icon="flash" minimal={false} onClick={this.globalController.toggleTheme}/>
 
             <Button
               className={Classes.MINIMAL}
@@ -150,17 +135,7 @@ class Playground extends React.Component {
             />
           </Navbar.Group>
         </Navbar>
-        <div id="layout-containter" style={{ width: '100%', height: '100%' }}>
-          <SplitPan isDark={this.state.isDark}>
-            <CodeEditor
-              controller={this.editorController}
-              isDark={this.state.isDark}
-              code={this.state.code}
-              onCodeChanged={this.handleCodeChanged}
-            />
-            <GamePreviewer/>
-          </SplitPan>
-        </div>
+        <SplitPan global={this.globalController}/>
       </div>
     );
   }
